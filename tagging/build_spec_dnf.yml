@@ -1,0 +1,31 @@
+version: 0.2
+
+env:
+  variables:
+    AWS_ACCOUNT_ID: "123456789012"        # replace with your account ID
+    AWS_DEFAULT_REGION: "ap-southeast-2"  # replace with your region
+    ECR_REPO_NAME: "my-repo"
+
+phases:
+  install:
+    commands:
+      - echo "Updating packages..."
+      - dnf update -y
+      - echo "Installing Podman..."
+      - dnf install -y podman
+      - podman --version
+  pre_build:
+    commands:
+      - echo "Logging in to Amazon ECR..."
+      - aws ecr get-login-password --region $AWS_DEFAULT_REGION \
+        | podman login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com
+  build:
+    commands:
+      - echo "Building Docker image with Podman..."
+      - podman build -t $ECR_REPO_NAME:latest .
+      - podman tag $ECR_REPO_NAME:latest $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION/$ECR_REPO_NAME:latest
+  post_build:
+    commands:
+      - echo "Pushing Docker image to ECR..."
+      - podman push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION/$ECR_REPO_NAME:latest
+      - echo "Build and push completed."
