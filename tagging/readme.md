@@ -14,3 +14,7 @@ but it’s a little tricky because CodeBuild doesn’t inject a direct $BRANCH v
 BRANCH_NAME=$(echo $CODEBUILD_SOURCE_VERSION | sed 's|refs/heads/||')
 echo "Branch = $BRANCH_NAME"
 ```
+
+Got it 👍 That happens because in CodePipeline → CodeBuild integrations, 
+the CODEBUILD_SOURCE_VERSION you see is often an S3 object ARN, not the branch. 
+That’s because CodePipeline zips up your CodeCommit source and drops it into an S3 bucket before CodeBuild runs.
