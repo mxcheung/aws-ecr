@@ -18,3 +18,22 @@ echo "Branch = $BRANCH_NAME"
 Got it 👍 That happens because in CodePipeline → CodeBuild integrations, 
 the CODEBUILD_SOURCE_VERSION you see is often an S3 object ARN, not the branch. 
 That’s because CodePipeline zips up your CodeCommit source and drops it into an S3 bucket before CodeBuild runs.
+
+Use CodePipeline environment variables
+If your build is triggered by CodePipeline, you can pass the branch name explicitly to CodeBuild via an environment variable in your pipeline definition.
+
+```
+pipeline.addStage({
+  stageName: 'Build',
+  actions: [
+    new codepipeline_actions.CodeBuildAction({
+      actionName: 'Build',
+      project,
+      input: sourceOutput,
+      environmentVariables: {
+        BRANCH_NAME: { value: 'main' }, // you can make this dynamic per branch pipeline
+      },
+    }),
+  ],
+});
+```
